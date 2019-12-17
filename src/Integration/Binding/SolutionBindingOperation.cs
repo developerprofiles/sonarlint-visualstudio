@@ -166,16 +166,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (Project project in projects)
             {
-                if (BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(project))
-                {
-                    var binder = new ProjectBindingOperation(serviceProvider, project, this, this.logger);
-                    binder.Initialize();
-                    this.childBinder.Add(binder);
-                }
-                else
-                {
-                    this.logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
-                }
+                Debug.Assert(BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(project),
+                    "Not expecting a project that only has solution-level configuration");
+                var binder = new ProjectBindingOperation(serviceProvider, project, this, this.logger);
+                binder.Initialize();
+                this.childBinder.Add(binder);
+
+                //// duncanp - remove string
+                //this.logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
             }
         }
 

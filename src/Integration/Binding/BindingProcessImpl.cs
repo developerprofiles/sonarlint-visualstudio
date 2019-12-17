@@ -245,10 +245,29 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             // If we are already bound we don't need to update/create rulesets in projects
             // that already have the ruleset information configured
-            var projectsToUpdate = allSupportedProjects;
+
+            // Not all projects need project-level configuration
+            var projectsWithProjectLevelConfig = allSupportedProjects
+                .Where(BindingRefactoringDumpingGround.IsProjectLevelBindingRequired).ToArray();
+
+            var projectsWithoutProjectLevelConfig = allSupportedProjects.Except(projectsWithProjectLevelConfig)
+                .ToArray();
+            if (projectsWithoutProjectLevelConfig.Length > 0)
+            {
+                DisplayProjectListMessage(logger, "TODO the following projects do not required project-level configuration:",
+                    projectsWithoutProjectLevelConfig);
+            }
+
+            var projectsToUpdate = projectsWithProjectLevelConfig;
+            
+            if (projectsToUpdate.Length == 0)
+            {
+                return projectsToUpdate;
+            }
 
             if (isFirstBinding)
             {
+                // duncanp - update message
                 logger.WriteLine(Strings.Bind_Ruleset_InitialBinding);
             }
             else
@@ -256,19 +275,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 var unboundProjects = bindingInformationProvider.GetUnboundProjects()?.ToArray() ?? new Project[] { };
                 projectsToUpdate = projectsToUpdate.Intersect(unboundProjects).ToArray();
 
-                var upToDateProjects = allSupportedProjects.Except(unboundProjects);
+                var upToDateProjects = projectsWithProjectLevelConfig.Except(unboundProjects);
                 if (upToDateProjects.Any())
                 {
-                    logger.WriteLine(Strings.Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated);
-                    var projectList = string.Join(", ", upToDateProjects.Select(p => p.Name));
-                    logger.WriteLine($"  {projectList}");
+                    DisplayProjectListMessage(logger, Strings.Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated, upToDateProjects);
                 }
                 else
                 {
+                    // duncanp - update message
                     logger.WriteLine(Strings.Bind_Ruleset_AllProjectsNeedToBeUpdated);
                 }
             }
             return projectsToUpdate;
+        }
+
+        private static void DisplayProjectListMessage(ILogger logger, string message, IEnumerable<Project> projects)
+        {
+            logger.WriteLine(message);
+            var projectList = string.Join(", ", projects.Select(p => p.Name));
+            logger.WriteLine($"  {projectList}");
         }
 
         #endregion
