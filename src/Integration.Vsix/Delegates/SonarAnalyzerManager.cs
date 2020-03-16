@@ -127,8 +127,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     var sonarQubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, configuration.Project.ProjectKey,
                         new TimerFactory(), this.logger);
                     this.disposableObjects.Add(sonarQubeIssueProvider);
-                    var liveIssueFactory = new LiveIssueFactory(workspace, vsSolution);
-                    var suppressionHandler = new SuppressionHandler(liveIssueFactory, sonarQubeIssueProvider);
+                    var liveIssueFactory = new RoslynLiveIssueFactory(workspace, vsSolution);
+                    var suppressionHandler = new RoslynSuppressionHandler(liveIssueFactory, sonarQubeIssueProvider);
 
                     if (configuration.Mode == SonarLintMode.Connected)
                     {
