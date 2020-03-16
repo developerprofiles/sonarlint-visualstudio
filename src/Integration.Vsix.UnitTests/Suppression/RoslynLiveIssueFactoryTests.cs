@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             uint fileCount = 0;
             vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, 0, null, out fileCount))
                 .Returns(VSConstants.S_OK);
-            vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, 0, new string[0], out fileCount))
+            vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, 0, Array.Empty<string>(), out fileCount))
                 .Returns(VSConstants.E_FAIL);
             vsSolutionMock.As<IVsSolution5>().Setup(x => x.GetGuidOfProjectFile(It.IsAny<string>()))
                 .Returns(Guid.Empty);
@@ -216,12 +216,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Create_WhenIssueIsModuleLevel_ReturnsExpectedIssue()
         {
             // Arrange & Act
-            var diagnostic = CreateDiagnostic(Location.None);
+            var diagnostic = CreateDiagnostic(Location.None, "S123");
             var result = SetupAndCreate(diagnostic, diagnosticProjectFilePath: ProjectInSolutionFilePath);
 
             // Assert
             result.Should().NotBeNull();
-            result.Diagnostic.Should().Be(diagnostic);
+            result.RuleId.Should().Be("S123");
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
             result.FilePath.Should().BeNull();
             result.StartLine.Should().BeNull();
@@ -234,13 +234,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // Arrange & Act
             var location = Location.Create("C:\\MySource.cs", AnyTextSpan, new LinePositionSpan());
-            var diagnostic = CreateDiagnostic(location);
+            var diagnostic = CreateDiagnostic(location, "F111");
 
             var result = SetupAndCreate(diagnostic, diagnosticProjectFilePath: ProjectInSolutionFilePath);
 
             // Assert
             result.Should().NotBeNull();
-            result.Diagnostic.Should().Be(diagnostic);
+            result.RuleId.Should().Be("F111");
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
             result.FilePath.Should().Be("C:\\MySource.cs");
             result.StartLine.Should().BeNull();
@@ -256,13 +256,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             var location = Location.Create("C:\\MySource.cs",
                     AnyTextSpan,
                     new LinePositionSpan(new LinePosition(inRangeLineNumber, 1), new LinePosition(inRangeLineNumber, 2)));
-            var diagnostic = CreateDiagnostic(location);
+            var diagnostic = CreateDiagnostic(location, "xxx333");
 
             var result = SetupAndCreate(diagnostic, diagnosticProjectFilePath: ProjectInSolutionFilePath);
 
             // Assert
             result.Should().NotBeNull();
-            result.Diagnostic.Should().Be(diagnostic);
+            result.RuleId.Should().Be("xxx333");
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
             result.FilePath.Should().Be("C:\\MySource.cs");
             result.StartLine.Should().Be(2);
@@ -288,9 +288,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             result.Should().BeNull();
         }
 
-        private Diagnostic CreateDiagnostic(Location location)
+        private Diagnostic CreateDiagnostic(Location location, string ruleId = "irrelevant")
         {
-            var anyDescriptor = new DiagnosticDescriptor("id",
+            var anyDescriptor = new DiagnosticDescriptor(ruleId,
                 "title", "message", "category", DiagnosticSeverity.Hidden, true);
 
             return Diagnostic.Create(anyDescriptor, location);
@@ -358,6 +358,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             return vsSolutionMock;
         }
-
     }
 }

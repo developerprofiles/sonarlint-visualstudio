@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void ShouldReport_NoMatchingServerIssues_ReturnsTrue()
         {
             // Arrange
-            string wholeLineText = "whole line text";
+            const string wholeLineText = "whole line text";
             string lineHash = ChecksumCalculator.Calculate(wholeLineText);
 
             Diagnostic diag = CreateDiagnostic("RuleId 1", CreateSourceLocation());
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void ShouldReport_ServerIssueMatchesOnLine_ReturnsFalse()
         {
             // Arrange
-            string wholeLineText = "whole line text";
+            const string wholeLineText = "whole line text";
 
             Diagnostic diag = CreateDiagnostic("RightRuleId", CreateSourceLocation());
             SetLiveIssue(diag, startLine: 101, wholeLineText: wholeLineText);
@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void ShouldReport_ServerIssueMatchesOnLineHash_ReturnsFalse()
         {
             // Arrange
-            string wholeLineText = "whole line text";
+            const string wholeLineText = "whole line text";
             string lineHash = ChecksumCalculator.Calculate(wholeLineText);
 
             Diagnostic diag = CreateDiagnostic("RightRuleId", CreateSourceLocation());
@@ -252,11 +252,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             return Diagnostic.Create(descriptor, loc);
         }
 
-        private static LiveIssue CreateLiveIssue()
-        {
-            return null;
-        }
-
         private static SonarQubeIssue CreateServerIssue(string ruleId, int line, string lineHash)
         {
             // The IServerIssuesProvider is responsible for matching on the file path and module key,
@@ -274,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
         private void SetLiveIssue(Diagnostic diagnostic, int startLine, string wholeLineText)
         {
-            LiveIssue liveIssue = new LiveIssue(diagnostic, Guid.NewGuid().ToString(),
+            LiveIssue liveIssue = new LiveIssue(diagnostic.Id, Guid.NewGuid().ToString(),
                 filePath: "dummy file path",
                 startLine: startLine,
                 wholeLineText: wholeLineText);
